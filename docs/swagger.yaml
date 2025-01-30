@@ -1,0 +1,79 @@
+basePath: /api/v1
+definitions:
+  models.Appointment:
+    type: object
+  models.HistoryEntry:
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@clinic.com
+    name: API Support
+    url: http://www.clinic-management.com/support
+  description: API for managing medical clinic operations
+  title: Clinic Management API
+  version: "1.0"
+paths:
+  /appointments:
+    post:
+      parameters:
+      - description: Appointment data
+        in: body
+        name: appointment
+        required: true
+        schema:
+          $ref: '#/definitions/models.Appointment'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Appointment'
+      security:
+      - BearerAuth: []
+      summary: Create appointment
+      tags:
+      - Appointments
+  /history:
+    post:
+      parameters:
+      - description: History entry
+        in: body
+        name: entry
+        required: true
+        schema:
+          $ref: '#/definitions/models.HistoryEntry'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.HistoryEntry'
+      security:
+      - BearerAuth: []
+      summary: Add history entry
+      tags:
+      - History
+  /patients/bulk:
+    post:
+      parameters:
+      - description: CSV file
+        in: formData
+        name: file
+        required: true
+        type: file
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Bulk upload patients
+      tags:
+      - Patients
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
