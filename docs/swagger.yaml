@@ -171,6 +171,38 @@ definitions:
         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         type: string
     type: object
+  models.Patient:
+    description: Patient information
+    properties:
+      amka:
+        description: '@Description The patient''s AMKA (Social Security Number)'
+        example: "12345678901"
+        type: string
+      created_at:
+        description: '@Description The time when the record was created'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      deleted_at:
+        description: '@Description The time when the record was deleted (soft delete)'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      id:
+        description: '@Description The unique identifier for the record'
+        example: 1
+        type: integer
+      registration:
+        description: '@Description The date of patient registration'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      updated_at:
+        description: '@Description The time when the record was last updated'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      user_id:
+        description: '@Description The ID of the associated user'
+        example: 1
+        type: integer
+    type: object
   models.User:
     description: User information
     properties:
@@ -265,6 +297,40 @@ info:
   version: "1.0"
 paths:
   /appointments:
+    get:
+      parameters:
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: startDate
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: endDate
+        type: string
+      - description: Patient ID
+        in: query
+        name: patientID
+        type: integer
+      - description: Doctor ID
+        in: query
+        name: doctorID
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Appointment'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: List appointments
+      tags:
+      - Appointments
     post:
       parameters:
       - description: Appointment data
@@ -278,9 +344,103 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/models.Appointment'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
       security:
       - BearerAuth: []
       summary: Create appointment
+      tags:
+      - Appointments
+  /appointments/{id}:
+    delete:
+      parameters:
+      - description: Appointment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete appointment
+      tags:
+      - Appointments
+    get:
+      parameters:
+      - description: Appointment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Appointment'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get appointment
+      tags:
+      - Appointments
+    put:
+      parameters:
+      - description: Appointment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated appointment data
+        in: body
+        name: appointment
+        required: true
+        schema:
+          $ref: '#/definitions/models.Appointment'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Appointment'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Update appointment
       tags:
       - Appointments
   /auth/login:
@@ -364,7 +524,6 @@ paths:
       - Authentication
   /doctors:
     get:
-      description: Get a list of all doctors
       produces:
       - application/json
       responses:
@@ -374,13 +533,18 @@ paths:
             items:
               $ref: '#/definitions/models.Doctor'
             type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
       summary: List all doctors
       tags:
       - Doctors
     post:
       consumes:
       - application/json
-      description: Create a new doctor
       parameters:
       - description: Doctor object
         in: body
@@ -395,12 +559,21 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/models.Doctor'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
       summary: Create a new doctor
       tags:
       - Doctors
   /doctors/{id}:
     delete:
-      description: Delete a doctor by their ID
       parameters:
       - description: Doctor ID
         in: path
@@ -411,14 +584,21 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
       summary: Delete a doctor
       tags:
       - Doctors
     get:
-      description: Get a doctor's details by their ID
       parameters:
       - description: Doctor ID
         in: path
@@ -432,13 +612,22 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.Doctor'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
       summary: Get a doctor by ID
       tags:
       - Doctors
     put:
       consumes:
       - application/json
-      description: Update a doctor's details
       parameters:
       - description: Doctor ID
         in: path
@@ -458,12 +647,25 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.Doctor'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
       summary: Update a doctor
       tags:
       - Doctors
   /doctors/{id}/availabilities:
     get:
-      description: Get all availability slots for a doctor
       parameters:
       - description: Doctor ID
         in: path
@@ -479,13 +681,22 @@ paths:
             items:
               $ref: '#/definitions/models.DoctorAvailability'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
       summary: Get doctor availabilities
       tags:
       - Doctors
     post:
       consumes:
       - application/json
-      description: Create a new availability slot for a doctor
       parameters:
       - description: Doctor ID
         in: path
@@ -504,15 +715,22 @@ paths:
         "201":
           description: Created
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.DoctorAvailability'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
       summary: Create doctor availability
       tags:
       - Doctors
   /doctors/availabilities/{id}:
     delete:
-      description: Delete an availability slot for a doctor
       parameters:
       - description: Availability ID
         in: path
@@ -523,14 +741,25 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
       summary: Delete doctor availability
       tags:
       - Doctors
   /history:
     post:
+      consumes:
+      - application/json
+      description: Add a new entry to a patient's medical history
       parameters:
       - description: History entry
         in: body
@@ -538,35 +767,340 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/models.HistoryEntry'
+      produces:
+      - application/json
       responses:
         "201":
           description: Created
           schema:
             $ref: '#/definitions/models.HistoryEntry'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
       security:
       - BearerAuth: []
       summary: Add history entry
       tags:
       - History
+  /history/{medicalHistoryID}:
+    get:
+      description: Retrieve the complete medical history for a patient
+      parameters:
+      - description: Medical History ID
+        in: path
+        name: medicalHistoryID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.HistoryEntry'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get patient history
+      tags:
+      - History
+  /history/{medicalHistoryID}/latest:
+    delete:
+      description: Delete the most recent entry in a patient's medical history
+      parameters:
+      - description: Medical History ID
+        in: path
+        name: medicalHistoryID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete latest history entry
+      tags:
+      - History
+  /history/latest:
+    put:
+      consumes:
+      - application/json
+      description: Update the most recent entry in a patient's medical history
+      parameters:
+      - description: Updated history entry
+        in: body
+        name: entry
+        required: true
+        schema:
+          $ref: '#/definitions/models.HistoryEntry'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.HistoryEntry'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Update latest history entry
+      tags:
+      - History
+  /history/search:
+    get:
+      description: Search for specific entries in a patient's medical history
+      parameters:
+      - description: Medical History ID
+        in: query
+        name: medicalHistoryID
+        required: true
+        type: integer
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: startDate
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: endDate
+        type: string
+      - description: Health issue
+        in: query
+        name: healthIssue
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.HistoryEntry'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Search patient history
+      tags:
+      - History
+  /patients:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all patients
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Patient'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: List patients
+      tags:
+      - patients
+    post:
+      consumes:
+      - application/json
+      description: Add a new patient to the system
+      parameters:
+      - description: Patient data
+        in: body
+        name: patient
+        required: true
+        schema:
+          $ref: '#/definitions/models.Patient'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Patient'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new patient
+      tags:
+      - patients
+  /patients/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a patient by their ID
+      parameters:
+      - description: Patient ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a patient
+      tags:
+      - patients
+    get:
+      consumes:
+      - application/json
+      description: Get a patient's details by their ID
+      parameters:
+      - description: Patient ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Patient'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a patient
+      tags:
+      - patients
+    put:
+      consumes:
+      - application/json
+      description: Update a patient's details
+      parameters:
+      - description: Patient ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated patient object
+        in: body
+        name: patient
+        required: true
+        schema:
+          $ref: '#/definitions/models.Patient'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Patient'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a patient
+      tags:
+      - patients
   /patients/bulk:
     post:
+      consumes:
+      - multipart/form-data
+      description: Upload multiple patients using a CSV file
       parameters:
       - description: CSV file
         in: formData
         name: file
         required: true
         type: file
+      produces:
+      - application/json
       responses:
         "202":
           description: Accepted
           schema:
             additionalProperties: true
             type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
       security:
       - BearerAuth: []
       summary: Bulk upload patients
       tags:
-      - Patients
+      - patients
 securityDefinitions:
   BearerAuth:
     in: header

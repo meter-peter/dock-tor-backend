@@ -1,10 +1,11 @@
+// internal/services/doctor_service.go
+
 package services
 
 import (
 	"clinic-management/internal/models"
 	"clinic-management/internal/repositories"
 	"errors"
-	"time"
 )
 
 type DoctorService struct {
@@ -35,17 +36,10 @@ func (s *DoctorService) ListDoctors() ([]models.Doctor, error) {
 	return s.repo.List()
 }
 
-func (s *DoctorService) CreateAvailability(doctorID uint, startTime, endTime time.Time) error {
-	if startTime.After(endTime) {
+func (s *DoctorService) CreateAvailability(availability *models.DoctorAvailability) error {
+	if availability.StartTime.After(availability.EndTime) {
 		return errors.New("start time must be before end time")
 	}
-
-	availability := &models.DoctorAvailability{
-		DoctorID:  doctorID,
-		StartTime: startTime,
-		EndTime:   endTime,
-	}
-
 	return s.repo.CreateAvailability(availability)
 }
 

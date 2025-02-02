@@ -1,8 +1,12 @@
+// internal/repositories/patient_repo.go
+
 package repositories
 
 import (
 	"clinic-management/config"
 	"clinic-management/internal/models"
+
+	"gorm.io/gorm"
 )
 
 type PatientRepository interface {
@@ -14,44 +18,40 @@ type PatientRepository interface {
 	List() ([]models.Patient, error)
 }
 
-type patientRepository struct{}
+type patientRepository struct {
+	db *gorm.DB
+}
 
 func NewPatientRepository() PatientRepository {
-	return &patientRepository{}
+	return &patientRepository{db: config.DB}
 }
 
 func (r *patientRepository) Create(patient *models.Patient) error {
-	return config.DB.Create(patient).Error
+	return r.db.Create(patient).Error
 }
 
 func (r *patientRepository) GetByID(id uint) (*models.Patient, error) {
 	var patient models.Patient
-	if err := config.DB.First(&patient, id).Error; err != nil {
-		return nil, err
-	}
-	return &patient, nil
+	err := r.db.First(&patient, id).Error
+	return &patient, err
 }
 
 func (r *patientRepository) GetByAMKA(amka string) (*models.Patient, error) {
 	var patient models.Patient
-	if err := config.DB.Where("amka = ?", amka).First(&patient).Error; err != nil {
-		return nil, err
-	}
-	return &patient, nil
+	err := r.db.Where("amka = ?", amka).First(&patient).Error
+	return &patient, err
 }
 
 func (r *patientRepository) Update(patient *models.Patient) error {
-	return config.DB.Save(patient).Error
+	return r.db.Save(patient).Error
 }
 
 func (r *patientRepository) Delete(id uint) error {
-	return config.DB.Delete(&models.Patient{}, id).Error
+	return r.db.Delete(&models.Patient{}, id).Error
 }
 
 func (r *patientRepository) List() ([]models.Patient, error) {
 	var patients []models.Patient
-	if err := config.DB.Find(&patients).Error; err != nil {
-		return nil, err
-	}
-	return patients, nil
+	err := r.db.Find(&patients).Error
+	return patients, err
 }

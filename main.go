@@ -1,8 +1,6 @@
 package main
 
 import (
-	"clinic-management/api/handlers"
-	"clinic-management/api/middleware"
 	"clinic-management/api/routes"
 	"clinic-management/config"
 	_ "clinic-management/docs"
@@ -22,16 +20,13 @@ import (
 // @contact.name API Support
 // @contact.url http://www.swagger.io/support
 // @contact.email support@swagger.io
-
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 // @host localhost:8080
 // @BasePath /api/v1
-
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
-
 func main() {
 	// Load configuration
 	cfg := config.GetConfig()
@@ -60,34 +55,33 @@ func main() {
 	userRepo := repositories.NewUserRepository()
 	patientRepo := repositories.NewPatientRepository()
 	appointmentRepo := repositories.NewAppointmentRepository()
-	availabilityRepo := repositories.NewDoctorAvailabilityRepository() // Added
+	availabilityRepo := repositories.NewDoctorAvailabilityRepository()
+	doctorRepo := repositories.NewDoctorRepository()
+	historyRepo := repositories.NewHistoryRepository()
+
 	// Initialize services
 	authService := services.NewAuthService(userRepo)
 	patientService := services.NewPatientService(patientRepo)
 	appointmentService := services.NewAppointmentService(
 		appointmentRepo,
-		availabilityRepo, // Added
+		availabilityRepo,
 	)
+	doctorService := services.NewDoctorService(doctorRepo)
+	historyService := services.NewHistoryService(historyRepo)
 
-	// Initialize handlers
-	authHandler := handlers.NewAuthHandler(authService)
-	patientHandler := handlers.NewPatientHandler(patientService)
-	appointmentHandler := handlers.NewAppointmentHandler(appointmentService)
+	// Create Services struct
+	servicesStruct := &services.Services{
+		AuthService:        authService,
+		PatientService:     patientService,
+		AppointmentService: appointmentService,
+		DoctorService:      doctorService,
+		HistoryService:     historyService,
+	}
 
 	router := gin.Default()
-	router.Use(
-		middleware.CORS(),
-		middleware.Logger(),
-		middleware.Recovery(),
-	)
 
 	// Configure routes
-	routes.ConfigureRoutes(
-		router,
-		authHandler,
-		patientHandler,
-		appointmentHandler,
-	)
+	routes.ConfigureRoutes(router, servicesStruct)
 
 	// Start server
 	log.Printf("🚀 Server starting on port %s", cfg.ServerPort)

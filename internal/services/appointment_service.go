@@ -1,3 +1,5 @@
+// internal/services/appointment_service.go
+
 package services
 
 import (
@@ -23,12 +25,10 @@ func NewAppointmentService(
 }
 
 func (s *AppointmentService) CreateAppointment(appointment *models.Appointment) error {
-	// Validate appointment time
 	if appointment.DateTime.Before(time.Now().Add(15 * time.Minute)) {
 		return errors.New("appointment must be scheduled at least 15 minutes in advance")
 	}
 
-	// Check doctor availability
 	isAvailable, err := s.availabilityRepo.IsDoctorAvailable(
 		appointment.DoctorID,
 		appointment.DateTime,
@@ -40,7 +40,6 @@ func (s *AppointmentService) CreateAppointment(appointment *models.Appointment) 
 		return errors.New("doctor is not available at this time")
 	}
 
-	// Check patient has no overlapping appointments
 	hasConflict, err := s.repo.HasPatientConflict(
 		appointment.PatientID,
 		appointment.DateTime,
@@ -55,4 +54,18 @@ func (s *AppointmentService) CreateAppointment(appointment *models.Appointment) 
 	return s.repo.Create(appointment)
 }
 
-// Add other service methods
+func (s *AppointmentService) GetAppointment(id uint) (*models.Appointment, error) {
+	return s.repo.GetByID(id)
+}
+
+func (s *AppointmentService) UpdateAppointment(appointment *models.Appointment) error {
+	return s.repo.Update(appointment)
+}
+
+func (s *AppointmentService) DeleteAppointment(id uint) error {
+	return s.repo.Delete(id)
+}
+
+func (s *AppointmentService) ListAppointments(startDate, endDate time.Time, patientID, doctorID uint) ([]models.Appointment, error) {
+	return s.repo.List(startDate, endDate, patientID, doctorID)
+}

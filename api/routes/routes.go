@@ -1,9 +1,10 @@
+// api/routes/routes.go
+
 package routes
 
 import (
 	"clinic-management/api/handlers"
 	"clinic-management/api/middleware"
-	"clinic-management/internal/repositories"
 	"clinic-management/internal/services"
 
 	"github.com/gin-gonic/gin"
@@ -11,98 +12,56 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-type (
-	AuthHandler interface {
-		Register(c *gin.Context)
-		Login(c *gin.Context)
-		Logout(c *gin.Context)
-	}
-
-	PatientHandler interface {
-		CreatePatient(c *gin.Context)
-		GetPatient(c *gin.Context)
-		UpdatePatient(c *gin.Context)
-		DeletePatient(c *gin.Context)
-		ListPatients(c *gin.Context)
-		BulkUploadPatients(c *gin.Context)
-	}
-
-	AppointmentHandler interface {
-		CreateAppointment(c *gin.Context)
-		GetAppointment(c *gin.Context)
-		UpdateAppointment(c *gin.Context)
-		DeleteAppointment(c *gin.Context)
-		ListAppointments(c *gin.Context)
-	}
-
-	HistoryHandler interface {
-		AddHistoryEntry(c *gin.Context)
-		GetHistory(c *gin.Context)
-		UpdateHistoryEntry(c *gin.Context)
-	}
-
-	AvailabilityHandler interface {
-		SetAvailability(c *gin.Context)
-		GetAvailability(c *gin.Context)
-	}
-)
-
-func ConfigureRoutes(
-	router *gin.Engine,
-	authHandler *handlers.AuthHandler,
-	patientHandler PatientHandler,
-	appointmentHandler AppointmentHandler,
-) {
-	// Swagger documentation (must be before any other middleware)
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(
-		swaggerFiles.Handler,
-		ginSwagger.DefaultModelsExpandDepth(-1),
-	))
+func ConfigureRoutes(router *gin.Engine, services *services.Services) {
+	// Swagger documentation
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Public routes
-	router.GET("/health", healthCheck)
-	authGroup := router.Group("/api/v1/auth")
-	{
-		authGroup.POST("/register", authHandler.Register)
-		authGroup.POST("/login", authHandler.Login)
-		authGroup.POST("/logout", middleware.Auth(), authHandler.Logout)
-	}
+	router.GET("/health", handlers.HealthCheck)
 
-	// API version 1
+	// API v1 routes
 	v1 := router.Group("/api/v1")
 	{
-		// Authenticated routes
-		authenticated := v1.Group("")
-		authenticated.Use(middleware.Auth())
+		// Auth routes
+		auth := v1.Group("/auth")
+		{
+			authHandler := handlers.NewAuthHandler(services.AuthService)
+			auth.POST("/register", authHandler.Register)
+			auth.POST("/login", authHandler.Login)
+			auth.POST("/logout", middleware.AuthMiddleware(), authHandler.Logout)
+		}
+
+		// Protected routes
+		protected := v1.Group("")
+		protected.Use(middleware.AuthMiddleware())
 		{
 			// Patient routes
-			patients := authenticated.Group("/patients")
-			patients.Use(middleware.RoleAuth("secretary", "doctor"))
+			patients := protected.Group("/patients")
 			{
+				patientHandler := handlers.NewPatientHandler(services.PatientService)
 				patients.POST("", patientHandler.CreatePatient)
-				patients.POST("/bulk", patientHandler.BulkUploadPatients)
 				patients.GET("", patientHandler.ListPatients)
 				patients.GET("/:id", patientHandler.GetPatient)
 				patients.PUT("/:id", patientHandler.UpdatePatient)
 				patients.DELETE("/:id", patientHandler.DeletePatient)
+				patients.POST("/bulk", patientHandler.BulkUploadPatients)
 			}
 
 			// Appointment routes
-			appointments := authenticated.Group("/appointments")
+			appointments := protected.Group("/appointments")
 			{
-				appointments.POST("", middleware.RoleAuth("secretary", "doctor"), appointmentHandler.CreateAppointment)
+				appointmentHandler := handlers.NewAppointmentHandler(services.AppointmentService)
+				appointments.POST("", appointmentHandler.CreateAppointment)
 				appointments.GET("", appointmentHandler.ListAppointments)
 				appointments.GET("/:id", appointmentHandler.GetAppointment)
-				appointments.PUT("/:id", middleware.RoleAuth("secretary", "doctor"), appointmentHandler.UpdateAppointment)
-				appointments.DELETE("/:id", middleware.RoleAuth("secretary", "doctor"), appointmentHandler.DeleteAppointment)
+				appointments.PUT("/:id", appointmentHandler.UpdateAppointment)
+				appointments.DELETE("/:id", appointmentHandler.DeleteAppointment)
 			}
 
-			doctorRepo := repositories.NewDoctorRepository()
-			doctorService := services.NewDoctorService(doctorRepo)
-			doctorHandler := handlers.NewDoctorHandler(doctorService)
-			doctors := router.Group("/doctors")
-			doctors.Use(middleware.Auth())
+			// Doctor routes
+			doctors := protected.Group("/doctors")
 			{
+				doctorHandler := handlers.NewDoctorHandler(services.DoctorService)
 				doctors.POST("", doctorHandler.CreateDoctor)
 				doctors.GET("", doctorHandler.ListDoctors)
 				doctors.GET("/:id", doctorHandler.GetDoctor)
@@ -112,13 +71,17 @@ func ConfigureRoutes(
 				doctors.GET("/:id/availabilities", doctorHandler.GetAvailabilities)
 				doctors.DELETE("/availabilities/:id", doctorHandler.DeleteAvailability)
 			}
+
+			// Medical History routes
+			history := protected.Group("/history")
+			{
+				historyHandler := handlers.NewHistoryHandler(services.HistoryService)
+				history.POST("", historyHandler.AddHistoryEntry)
+				history.GET("/:medicalHistoryID", historyHandler.GetPatientHistory)
+				history.PUT("/latest", historyHandler.UpdateLatestEntry)
+				history.DELETE("/:medicalHistoryID/latest", historyHandler.DeleteLatestEntry)
+				history.GET("/search", historyHandler.SearchHistory)
+			}
 		}
 	}
-}
-
-func healthCheck(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"status":  "ok",
-		"version": "1.0.0",
-	})
 }

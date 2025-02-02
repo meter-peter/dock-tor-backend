@@ -1,9 +1,13 @@
+// internal/services/patient_service.go
+
 package services
 
 import (
 	"clinic-management/internal/models"
 	"clinic-management/internal/repositories"
+	"encoding/csv"
 	"errors"
+	"io"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -13,10 +17,10 @@ import (
 type PatientService interface {
 	CreatePatient(patient *models.Patient) error
 	GetPatient(id uint) (*models.Patient, error)
-	UpdatePatient(patient *models.Patient) error
+	UpdatePatient(patient *models.Patient) (*models.Patient, error)
 	DeletePatient(id uint) error
 	ListPatients() ([]models.Patient, error)
-	BulkCreatePatients(records [][]string) (int, []error)
+	BulkCreatePatients(reader io.Reader) (int, []error)
 }
 
 type patientService struct {
@@ -28,15 +32,11 @@ func NewPatientService(repo repositories.PatientRepository) PatientService {
 }
 
 func (s *patientService) CreatePatient(patient *models.Patient) error {
-	// Set registration time
 	patient.Registration = time.Now()
-
-	// Check AMKA uniqueness
 	_, err := s.repo.GetByAMKA(patient.AMKA)
 	if err == nil {
 		return errors.New("patient with this AMKA already exists")
 	}
-
 	return s.repo.Create(patient)
 }
 
@@ -44,20 +44,20 @@ func (s *patientService) GetPatient(id uint) (*models.Patient, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *patientService) UpdatePatient(patient *models.Patient) error {
+func (s *patientService) UpdatePatient(patient *models.Patient) (*models.Patient, error) {
 	existing, err := s.repo.GetByID(patient.ID)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	// Prevent AMKA modification
 	if existing.AMKA != patient.AMKA {
-		return errors.New("AMKA cannot be modified")
+		return nil, errors.New("AMKA cannot be modified")
 	}
-
-	return s.repo.Update(patient)
+	err = s.repo.Update(patient)
+	if err != nil {
+		return nil, err
+	}
+	return patient, nil
 }
-
 func (s *patientService) DeletePatient(id uint) error {
 	return s.repo.Delete(id)
 }
@@ -65,13 +65,20 @@ func (s *patientService) DeletePatient(id uint) error {
 func (s *patientService) ListPatients() ([]models.Patient, error) {
 	return s.repo.List()
 }
-func (s *patientService) BulkCreatePatients(records [][]string) (int, []error) {
+
+func (s *patientService) BulkCreatePatients(reader io.Reader) (int, []error) {
+	csvReader := csv.NewReader(reader)
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		return 0, []error{err}
+	}
+
 	var wg sync.WaitGroup
 	errChan := make(chan error, len(records))
 	sem := make(chan struct{}, 10) // Limit concurrent goroutines
 	var successCount int32
 
-	for _, record := range records {
+	for _, record := range records[1:] { // Skip header
 		wg.Add(1)
 		go func(r []string) {
 			defer wg.Done()
