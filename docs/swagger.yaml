@@ -1,16 +1,266 @@
 basePath: /api/v1
 definitions:
   models.Appointment:
+    description: Appointment information
+    properties:
+      created_at:
+        description: '@Description The time when the record was created'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      date_time:
+        description: '@Description The date and time of the appointment'
+        example: "2023-01-01T10:00:00Z"
+        type: string
+      deleted_at:
+        description: '@Description The time when the record was deleted (soft delete)'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      doctor_id:
+        description: '@Description The ID of the doctor'
+        example: 2
+        type: integer
+      id:
+        description: '@Description The unique identifier for the record'
+        example: 1
+        type: integer
+      patient_id:
+        description: '@Description The ID of the patient'
+        example: 1
+        type: integer
+      reason:
+        description: '@Description The reason for the appointment'
+        example: Τακτικός έλεγχος
+        type: string
+      status:
+        description: '@Description The status of the appointment'
+        example: Created
+        type: string
+      updated_at:
+        description: '@Description The time when the record was last updated'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+    type: object
+  models.Doctor:
+    description: Doctor information
+    properties:
+      created_at:
+        description: '@Description The time when the record was created'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      deleted_at:
+        description: '@Description The time when the record was deleted (soft delete)'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      id:
+        description: '@Description The unique identifier for the record'
+        example: 1
+        type: integer
+      specialty:
+        description: '@Description The doctor''s specialty'
+        example: Cardiology
+        type: string
+      updated_at:
+        description: '@Description The time when the record was last updated'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/models.User'
+        description: '@Description The associated user'
+      user_id:
+        description: '@Description The ID of the associated user'
+        example: 1
+        type: integer
+    type: object
+  models.DoctorAvailability:
+    description: Doctor availability information
+    properties:
+      created_at:
+        description: '@Description The time when the record was created'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      deleted_at:
+        description: '@Description The time when the record was deleted (soft delete)'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      doctor:
+        allOf:
+        - $ref: '#/definitions/models.Doctor'
+        description: '@Description The associated doctor'
+      doctor_id:
+        description: '@Description The ID of the doctor'
+        example: 1
+        type: integer
+      end_time:
+        description: '@Description The end time of availability'
+        example: "2023-01-01T17:00:00Z"
+        type: string
+      id:
+        description: '@Description The unique identifier for the record'
+        example: 1
+        type: integer
+      is_available:
+        description: '@Description Whether the doctor is available during this time'
+        example: true
+        type: boolean
+      start_time:
+        description: '@Description The start time of availability'
+        example: "2023-01-01T09:00:00Z"
+        type: string
+      updated_at:
+        description: '@Description The time when the record was last updated'
+        example: "2023-01-01T00:00:00Z"
+        type: string
     type: object
   models.HistoryEntry:
+    description: History entry information
+    properties:
+      created_at:
+        description: '@Description The time when the record was created'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      date:
+        description: '@Description The date of the entry'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      deleted_at:
+        description: '@Description The time when the record was deleted (soft delete)'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      health_issues:
+        description: '@Description The health issues recorded'
+        example: Πονοκέφαλος και πυρετός
+        type: string
+      id:
+        description: '@Description The unique identifier for the record'
+        example: 1
+        type: integer
+      medical_history_id:
+        description: '@Description The ID of the associated medical history'
+        example: 1
+        type: integer
+      treatment:
+        description: '@Description The treatment prescribed'
+        example: Συνταγογράφηση παυσίπονων και ανάπαυση
+        type: string
+      updated_at:
+        description: '@Description The time when the record was last updated'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+    type: object
+  models.LoginCredentials:
+    description: Login credentials
+    properties:
+      email:
+        description: '@Description The user''s email address'
+        example: georgios.papadopoulos@example.com
+        type: string
+      password:
+        description: '@Description The user''s password'
+        example: strongPassword123!
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.LoginResponse:
+    description: Login response
+    properties:
+      token:
+        description: '@Description JWT token for authentication'
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  models.User:
+    description: User information
+    properties:
+      created_at:
+        description: '@Description The time when the record was created'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      deleted_at:
+        description: '@Description The time when the record was deleted (soft delete)'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      email:
+        description: '@Description The user''s email address'
+        example: georgios.papadopoulos@example.com
+        type: string
+      first_name:
+        description: '@Description The user''s first name'
+        example: Γεώργιος
+        type: string
+      id:
+        description: '@Description The unique identifier for the record'
+        example: 1
+        type: integer
+      last_name:
+        description: '@Description The user''s last name'
+        example: Παπαδόπουλος
+        type: string
+      role:
+        description: '@Description The user''s role in the system'
+        example: patient
+        type: string
+      updated_at:
+        description: '@Description The time when the record was last updated'
+        example: "2023-01-01T00:00:00Z"
+        type: string
+    type: object
+  models.UserRegistration:
+    description: User registration information
+    properties:
+      email:
+        description: '@Description The user''s email address'
+        example: georgios.papadopoulos@example.com
+        type: string
+      first_name:
+        description: '@Description The user''s first name'
+        example: Γεώργιος
+        type: string
+      last_name:
+        description: '@Description The user''s last name'
+        example: Παπαδόπουλος
+        type: string
+      password:
+        description: '@Description The user''s password'
+        example: strongPassword123!
+        minLength: 8
+        type: string
+      role:
+        description: '@Description The user''s role in the system'
+        enum:
+        - patient
+        - doctor
+        - receptionist
+        example: patient
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    - role
+    type: object
+  utils.APIResponse:
+    properties:
+      data: {}
+      error:
+        type: string
+      success:
+        type: boolean
     type: object
 host: localhost:8080
 info:
   contact:
-    email: support@clinic.com
+    email: support@swagger.io
     name: API Support
-    url: http://www.clinic-management.com/support
-  description: API for managing medical clinic operations
+    url: http://www.swagger.io/support
+  description: This is a clinic management server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
   title: Clinic Management API
   version: "1.0"
 paths:
@@ -33,6 +283,252 @@ paths:
       summary: Create appointment
       tags:
       - Appointments
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user and return a JWT token
+      parameters:
+      - description: Login Credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginCredentials'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      summary: User login
+      tags:
+      - Authentication
+  /auth/logout:
+    post:
+      description: Logout the current user (invalidate the token)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: User logout
+      tags:
+      - Authentication
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with the provided details
+      parameters:
+      - description: User Registration Info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserRegistration'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      summary: Register a new user
+      tags:
+      - Authentication
+  /doctors:
+    get:
+      description: Get a list of all doctors
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Doctor'
+            type: array
+      summary: List all doctors
+      tags:
+      - Doctors
+    post:
+      consumes:
+      - application/json
+      description: Create a new doctor
+      parameters:
+      - description: Doctor object
+        in: body
+        name: doctor
+        required: true
+        schema:
+          $ref: '#/definitions/models.Doctor'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Doctor'
+      summary: Create a new doctor
+      tags:
+      - Doctors
+  /doctors/{id}:
+    delete:
+      description: Delete a doctor by their ID
+      parameters:
+      - description: Doctor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a doctor
+      tags:
+      - Doctors
+    get:
+      description: Get a doctor's details by their ID
+      parameters:
+      - description: Doctor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Doctor'
+      summary: Get a doctor by ID
+      tags:
+      - Doctors
+    put:
+      consumes:
+      - application/json
+      description: Update a doctor's details
+      parameters:
+      - description: Doctor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated doctor object
+        in: body
+        name: doctor
+        required: true
+        schema:
+          $ref: '#/definitions/models.Doctor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Doctor'
+      summary: Update a doctor
+      tags:
+      - Doctors
+  /doctors/{id}/availabilities:
+    get:
+      description: Get all availability slots for a doctor
+      parameters:
+      - description: Doctor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.DoctorAvailability'
+            type: array
+      summary: Get doctor availabilities
+      tags:
+      - Doctors
+    post:
+      consumes:
+      - application/json
+      description: Create a new availability slot for a doctor
+      parameters:
+      - description: Doctor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Availability object
+        in: body
+        name: availability
+        required: true
+        schema:
+          $ref: '#/definitions/models.DoctorAvailability'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create doctor availability
+      tags:
+      - Doctors
+  /doctors/availabilities/{id}:
+    delete:
+      description: Delete an availability slot for a doctor
+      parameters:
+      - description: Availability ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete doctor availability
+      tags:
+      - Doctors
   /history:
     post:
       parameters:

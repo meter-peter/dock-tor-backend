@@ -1,7 +1,10 @@
 package routes
 
 import (
+	"clinic-management/api/handlers"
 	"clinic-management/api/middleware"
+	"clinic-management/internal/repositories"
+	"clinic-management/internal/services"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -10,7 +13,9 @@ import (
 
 type (
 	AuthHandler interface {
+		Register(c *gin.Context)
 		Login(c *gin.Context)
+		Logout(c *gin.Context)
 	}
 
 	PatientHandler interface {
@@ -44,7 +49,7 @@ type (
 
 func ConfigureRoutes(
 	router *gin.Engine,
-	authHandler AuthHandler,
+	authHandler *handlers.AuthHandler,
 	patientHandler PatientHandler,
 	appointmentHandler AppointmentHandler,
 ) {
@@ -56,13 +61,16 @@ func ConfigureRoutes(
 
 	// Public routes
 	router.GET("/health", healthCheck)
+	authGroup := router.Group("/api/v1/auth")
+	{
+		authGroup.POST("/register", authHandler.Register)
+		authGroup.POST("/login", authHandler.Login)
+		authGroup.POST("/logout", middleware.Auth(), authHandler.Logout)
+	}
 
 	// API version 1
 	v1 := router.Group("/api/v1")
 	{
-		// Authentication
-		v1.POST("/login", authHandler.Login)
-
 		// Authenticated routes
 		authenticated := v1.Group("")
 		authenticated.Use(middleware.Auth())
@@ -88,9 +96,26 @@ func ConfigureRoutes(
 				appointments.PUT("/:id", middleware.RoleAuth("secretary", "doctor"), appointmentHandler.UpdateAppointment)
 				appointments.DELETE("/:id", middleware.RoleAuth("secretary", "doctor"), appointmentHandler.DeleteAppointment)
 			}
+
+			doctorRepo := repositories.NewDoctorRepository()
+			doctorService := services.NewDoctorService(doctorRepo)
+			doctorHandler := handlers.NewDoctorHandler(doctorService)
+			doctors := router.Group("/doctors")
+			doctors.Use(middleware.Auth())
+			{
+				doctors.POST("", doctorHandler.CreateDoctor)
+				doctors.GET("", doctorHandler.ListDoctors)
+				doctors.GET("/:id", doctorHandler.GetDoctor)
+				doctors.PUT("/:id", doctorHandler.UpdateDoctor)
+				doctors.DELETE("/:id", doctorHandler.DeleteDoctor)
+				doctors.POST("/:id/availabilities", doctorHandler.CreateAvailability)
+				doctors.GET("/:id/availabilities", doctorHandler.GetAvailabilities)
+				doctors.DELETE("/availabilities/:id", doctorHandler.DeleteAvailability)
+			}
 		}
 	}
 }
+
 func healthCheck(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status":  "ok",

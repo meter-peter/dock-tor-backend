@@ -4,6 +4,7 @@ import (
 	"clinic-management/config"
 	"clinic-management/internal/models"
 	"clinic-management/internal/utils"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -11,28 +12,33 @@ import (
 
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := c.GetHeader("Authorization")
-		if tokenString == "" {
-			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized"})
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			utils.UnauthorizedResponse(c, "Missing authorization header")
+			return
+		}
+
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		if tokenString == authHeader {
+			utils.UnauthorizedResponse(c, "Invalid authorization header format")
 			return
 		}
 
 		claims := &models.Claims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
-			return []byte(config.GetConfig().JWTSecret), // Get from config
-				nil
+			return []byte(config.GetConfig().JWTSecret), nil
 		})
 
 		if err != nil || !token.Valid {
-			c.AbortWithStatusJSON(401, gin.H{"error": "Invalid token"})
+			utils.UnauthorizedResponse(c, "Invalid token")
 			return
 		}
 
 		c.Set("user_id", claims.UserID)
+		c.Set("email", claims.Email)
 		c.Set("role", claims.Role)
 		c.Next()
 	}
-
 }
 
 func RoleAuth(allowedRoles ...string) gin.HandlerFunc {

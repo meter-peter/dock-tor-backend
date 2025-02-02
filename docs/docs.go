@@ -9,10 +9,15 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
+        "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",
-            "url": "http://www.clinic-management.com/support",
-            "email": "support@clinic.com"
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
         },
         "version": "{{.Version}}"
     },
@@ -46,6 +51,382 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/models.Appointment"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "description": "Authenticate a user and return a JWT token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User login",
+                "parameters": [
+                    {
+                        "description": "Login Credentials",
+                        "name": "credentials",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.LoginCredentials"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Logout the current user (invalidate the token)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User logout",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "description": "Register a new user with the provided details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "User Registration Info",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UserRegistration"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/doctors": {
+            "get": {
+                "description": "Get a list of all doctors",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Doctors"
+                ],
+                "summary": "List all doctors",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Doctor"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new doctor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Doctors"
+                ],
+                "summary": "Create a new doctor",
+                "parameters": [
+                    {
+                        "description": "Doctor object",
+                        "name": "doctor",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Doctor"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Doctor"
+                        }
+                    }
+                }
+            }
+        },
+        "/doctors/availabilities/{id}": {
+            "delete": {
+                "description": "Delete an availability slot for a doctor",
+                "tags": [
+                    "Doctors"
+                ],
+                "summary": "Delete doctor availability",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Availability ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/doctors/{id}": {
+            "get": {
+                "description": "Get a doctor's details by their ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Doctors"
+                ],
+                "summary": "Get a doctor by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Doctor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Doctor"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update a doctor's details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Doctors"
+                ],
+                "summary": "Update a doctor",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Doctor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated doctor object",
+                        "name": "doctor",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Doctor"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Doctor"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a doctor by their ID",
+                "tags": [
+                    "Doctors"
+                ],
+                "summary": "Delete a doctor",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Doctor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/doctors/{id}/availabilities": {
+            "get": {
+                "description": "Get all availability slots for a doctor",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Doctors"
+                ],
+                "summary": "Get doctor availabilities",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Doctor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DoctorAvailability"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new availability slot for a doctor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Doctors"
+                ],
+                "summary": "Create doctor availability",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Doctor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Availability object",
+                        "name": "availability",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.DoctorAvailability"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -117,10 +498,332 @@ const docTemplate = `{
     },
     "definitions": {
         "models.Appointment": {
-            "type": "object"
+            "description": "Appointment information",
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "@Description The time when the record was created",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "date_time": {
+                    "description": "@Description The date and time of the appointment",
+                    "type": "string",
+                    "example": "2023-01-01T10:00:00Z"
+                },
+                "deleted_at": {
+                    "description": "@Description The time when the record was deleted (soft delete)",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "doctor_id": {
+                    "description": "@Description The ID of the doctor",
+                    "type": "integer",
+                    "example": 2
+                },
+                "id": {
+                    "description": "@Description The unique identifier for the record",
+                    "type": "integer",
+                    "example": 1
+                },
+                "patient_id": {
+                    "description": "@Description The ID of the patient",
+                    "type": "integer",
+                    "example": 1
+                },
+                "reason": {
+                    "description": "@Description The reason for the appointment",
+                    "type": "string",
+                    "example": "Τακτικός έλεγχος"
+                },
+                "status": {
+                    "description": "@Description The status of the appointment",
+                    "type": "string",
+                    "example": "Created"
+                },
+                "updated_at": {
+                    "description": "@Description The time when the record was last updated",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                }
+            }
+        },
+        "models.Doctor": {
+            "description": "Doctor information",
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "@Description The time when the record was created",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "deleted_at": {
+                    "description": "@Description The time when the record was deleted (soft delete)",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "id": {
+                    "description": "@Description The unique identifier for the record",
+                    "type": "integer",
+                    "example": 1
+                },
+                "specialty": {
+                    "description": "@Description The doctor's specialty",
+                    "type": "string",
+                    "example": "Cardiology"
+                },
+                "updated_at": {
+                    "description": "@Description The time when the record was last updated",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "user": {
+                    "description": "@Description The associated user",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    ]
+                },
+                "user_id": {
+                    "description": "@Description The ID of the associated user",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "models.DoctorAvailability": {
+            "description": "Doctor availability information",
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "@Description The time when the record was created",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "deleted_at": {
+                    "description": "@Description The time when the record was deleted (soft delete)",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "doctor": {
+                    "description": "@Description The associated doctor",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Doctor"
+                        }
+                    ]
+                },
+                "doctor_id": {
+                    "description": "@Description The ID of the doctor",
+                    "type": "integer",
+                    "example": 1
+                },
+                "end_time": {
+                    "description": "@Description The end time of availability",
+                    "type": "string",
+                    "example": "2023-01-01T17:00:00Z"
+                },
+                "id": {
+                    "description": "@Description The unique identifier for the record",
+                    "type": "integer",
+                    "example": 1
+                },
+                "is_available": {
+                    "description": "@Description Whether the doctor is available during this time",
+                    "type": "boolean",
+                    "example": true
+                },
+                "start_time": {
+                    "description": "@Description The start time of availability",
+                    "type": "string",
+                    "example": "2023-01-01T09:00:00Z"
+                },
+                "updated_at": {
+                    "description": "@Description The time when the record was last updated",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                }
+            }
         },
         "models.HistoryEntry": {
-            "type": "object"
+            "description": "History entry information",
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "@Description The time when the record was created",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "date": {
+                    "description": "@Description The date of the entry",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "deleted_at": {
+                    "description": "@Description The time when the record was deleted (soft delete)",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "health_issues": {
+                    "description": "@Description The health issues recorded",
+                    "type": "string",
+                    "example": "Πονοκέφαλος και πυρετός"
+                },
+                "id": {
+                    "description": "@Description The unique identifier for the record",
+                    "type": "integer",
+                    "example": 1
+                },
+                "medical_history_id": {
+                    "description": "@Description The ID of the associated medical history",
+                    "type": "integer",
+                    "example": 1
+                },
+                "treatment": {
+                    "description": "@Description The treatment prescribed",
+                    "type": "string",
+                    "example": "Συνταγογράφηση παυσίπονων και ανάπαυση"
+                },
+                "updated_at": {
+                    "description": "@Description The time when the record was last updated",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                }
+            }
+        },
+        "models.LoginCredentials": {
+            "description": "Login credentials",
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "description": "@Description The user's email address",
+                    "type": "string",
+                    "example": "georgios.papadopoulos@example.com"
+                },
+                "password": {
+                    "description": "@Description The user's password",
+                    "type": "string",
+                    "example": "strongPassword123!"
+                }
+            }
+        },
+        "models.LoginResponse": {
+            "description": "Login response",
+            "type": "object",
+            "properties": {
+                "token": {
+                    "description": "@Description JWT token for authentication",
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+            }
+        },
+        "models.User": {
+            "description": "User information",
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "@Description The time when the record was created",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "deleted_at": {
+                    "description": "@Description The time when the record was deleted (soft delete)",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                },
+                "email": {
+                    "description": "@Description The user's email address",
+                    "type": "string",
+                    "example": "georgios.papadopoulos@example.com"
+                },
+                "first_name": {
+                    "description": "@Description The user's first name",
+                    "type": "string",
+                    "example": "Γεώργιος"
+                },
+                "id": {
+                    "description": "@Description The unique identifier for the record",
+                    "type": "integer",
+                    "example": 1
+                },
+                "last_name": {
+                    "description": "@Description The user's last name",
+                    "type": "string",
+                    "example": "Παπαδόπουλος"
+                },
+                "role": {
+                    "description": "@Description The user's role in the system",
+                    "type": "string",
+                    "example": "patient"
+                },
+                "updated_at": {
+                    "description": "@Description The time when the record was last updated",
+                    "type": "string",
+                    "example": "2023-01-01T00:00:00Z"
+                }
+            }
+        },
+        "models.UserRegistration": {
+            "description": "User registration information",
+            "type": "object",
+            "required": [
+                "email",
+                "first_name",
+                "last_name",
+                "password",
+                "role"
+            ],
+            "properties": {
+                "email": {
+                    "description": "@Description The user's email address",
+                    "type": "string",
+                    "example": "georgios.papadopoulos@example.com"
+                },
+                "first_name": {
+                    "description": "@Description The user's first name",
+                    "type": "string",
+                    "example": "Γεώργιος"
+                },
+                "last_name": {
+                    "description": "@Description The user's last name",
+                    "type": "string",
+                    "example": "Παπαδόπουλος"
+                },
+                "password": {
+                    "description": "@Description The user's password",
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "strongPassword123!"
+                },
+                "role": {
+                    "description": "@Description The user's role in the system",
+                    "type": "string",
+                    "enum": [
+                        "patient",
+                        "doctor",
+                        "receptionist"
+                    ],
+                    "example": "patient"
+                }
+            }
+        },
+        "utils.APIResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
         }
     },
     "securityDefinitions": {
@@ -139,7 +842,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Clinic Management API",
-	Description:      "API for managing medical clinic operations",
+	Description:      "This is a clinic management server.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

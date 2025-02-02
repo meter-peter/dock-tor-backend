@@ -5,7 +5,7 @@ import (
 	"clinic-management/api/middleware"
 	"clinic-management/api/routes"
 	"clinic-management/config"
-	_ "clinic-management/docs" // Add this line
+	_ "clinic-management/docs"
 	"clinic-management/internal/models"
 	"clinic-management/internal/repositories"
 	"clinic-management/internal/services"
@@ -15,20 +15,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @title           Clinic Management API
-// @version         1.0
-// @description     API for managing medical clinic operations
+// @title Clinic Management API
+// @version 1.0
+// @description This is a clinic management server.
+// @termsOfService http://swagger.io/terms/
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
 
-// @contact.name   API Support
-// @contact.url    http://www.clinic-management.com/support
-// @contact.email  support@clinic.com
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @host localhost:8080
+// @BasePath /api/v1
 
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
 
-// @host      localhost:8080
-// @BasePath  /api/v1
 func main() {
 	// Load configuration
 	cfg := config.GetConfig()
@@ -58,7 +61,6 @@ func main() {
 	patientRepo := repositories.NewPatientRepository()
 	appointmentRepo := repositories.NewAppointmentRepository()
 	availabilityRepo := repositories.NewDoctorAvailabilityRepository() // Added
-
 	// Initialize services
 	authService := services.NewAuthService(userRepo)
 	patientService := services.NewPatientService(patientRepo)
@@ -72,7 +74,6 @@ func main() {
 	patientHandler := handlers.NewPatientHandler(patientService)
 	appointmentHandler := handlers.NewAppointmentHandler(appointmentService)
 
-	// Create Gin router with middleware
 	router := gin.Default()
 	router.Use(
 		middleware.CORS(),
